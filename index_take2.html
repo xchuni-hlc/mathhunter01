@@ -1,354 +1,355 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <title>拍照</title>
-    <!-- <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script> -->
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
-    <!-- 添加以下手勢控制腳本 -->
-    <script>
-      AFRAME.registerComponent('draggable-touch', {
-        schema: {
-          minScale: { type: 'number', default: 0.02 },
-          maxScale: { type: 'number', default: 0.08 },
-          minX: { type: 'number', default: -0.3 },
-          maxX: { type: 'number', default: 0.3 },
-          minY: { type: 'number', default: 0 },
-          maxY: { type: 'number', default: 0.5 }
-        },
-        init: function () {
-          const el = this.el;
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+  <title>拍照</title>
+  <!-- <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script> -->
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+  <!-- 添加以下手勢控制腳本 -->
+  <script>
+    AFRAME.registerComponent('draggable-touch', {
+      schema: {
+        minScale: { type: 'number', default: 0.02 },
+        maxScale: { type: 'number', default: 0.08 },
+        minX: { type: 'number', default: -0.3 },
+        maxX: { type: 'number', default: 0.3 },
+        minY: { type: 'number', default: 0 },
+        maxY: { type: 'number', default: 0.5 }
+      },
+      init: function () {
+        const el = this.el;
 
+        this.isDragging = false;
+        this.isScaling = false;
+        this.isRotating = false;
+        this.startTouches = [];
+        this.startPosition = null;
+        this.startScale = null;
+        this.startRotation = null;
+        this.initialRotationY = 0;
+
+        el.sceneEl.addEventListener('touchstart', this.onTouchStart.bind(this));
+        el.sceneEl.addEventListener('touchmove', this.onTouchMove.bind(this));
+        el.sceneEl.addEventListener('touchend', this.onTouchEnd.bind(this));
+      },
+
+      onTouchStart: function (event) {
+        const touches = event.touches;
+
+        if (touches.length === 1) {
+          this.isDragging = true;
+          this.startTouches = [touches[0]];
+          this.startPosition = this.el.object3D.position.clone();
+        } else if (touches.length === 2) {
+          this.isDragging = false;
+          this.isScaling = true;
+          this.startTouches = [touches[0], touches[1]];
+          this.startScale = this.el.object3D.scale.clone();
+          this.startRotation = this.el.object3D.rotation.clone();
+        } else if (touches.length === 3) {
           this.isDragging = false;
           this.isScaling = false;
-          this.isRotating = false;
-          this.startTouches = [];
-          this.startPosition = null;
-          this.startScale = null;
-          this.startRotation = null;
-          this.initialRotationY = 0;
-
-          el.sceneEl.addEventListener('touchstart', this.onTouchStart.bind(this));
-          el.sceneEl.addEventListener('touchmove', this.onTouchMove.bind(this));
-          el.sceneEl.addEventListener('touchend', this.onTouchEnd.bind(this));
-        },
-
-        onTouchStart: function (event) {
-          const touches = event.touches;
-
-          if (touches.length === 1) {
-            this.isDragging = true;
-            this.startTouches = [touches[0]];
-            this.startPosition = this.el.object3D.position.clone();
-          } else if (touches.length === 2) {
-            this.isDragging = false;
-            this.isScaling = true;
-            this.startTouches = [touches[0], touches[1]];
-            this.startScale = this.el.object3D.scale.clone();
-            this.startRotation = this.el.object3D.rotation.clone();
-          } else if (touches.length === 3) {
-            this.isDragging = false;
-            this.isScaling = false;
-            this.isRotating = true;
-            this.startTouches = [touches[0], touches[1], touches[2]];
-            this.startRotation = this.el.object3D.rotation.clone();
-            this.initialRotationY = this.startRotation.y;
-          }
-        },
-
-        onTouchMove: function (event) {
-          const touches = event.touches;
-
-          if (this.isDragging && touches.length === 1) {
-            const deltaX = (touches[0].clientX - this.startTouches[0].clientX) * 0.001;
-            const deltaY = (touches[0].clientY - this.startTouches[0].clientY) * 0.001;
-
-            const newX = Math.max(this.data.minX, Math.min(this.data.maxX, this.startPosition.x + deltaX));
-            const newY = Math.max(this.data.minY, Math.min(this.data.maxY, this.startPosition.y - deltaY));
-
-            this.el.object3D.position.set(newX, newY, this.startPosition.z);
-          } else if (this.isScaling && touches.length === 2) {
-            const currentDistance = this.getDistance(touches[0], touches[1]);
-            const startDistance = this.getDistance(this.startTouches[0], this.startTouches[1]);
-
-            const scaleMultiplier = currentDistance / startDistance;
-            const newScale = Math.max(
-              this.data.minScale,
-              Math.min(this.data.maxScale, this.startScale.x * scaleMultiplier)
-            );
-
-            this.el.object3D.scale.set(newScale, newScale, newScale);
-          } else if (this.isRotating && touches.length === 3) {
-            const deltaX = (touches[0].clientX + touches[1].clientX + touches[2].clientX) / 3 -
-                          (this.startTouches[0].clientX + this.startTouches[1].clientX + this.startTouches[2].clientX) / 3;
-
-            const rotationSpeed = 0.01;
-            const newRotationY = this.initialRotationY + deltaX * rotationSpeed;
-
-            this.el.object3D.rotation.set(
-              this.startRotation.x,
-              newRotationY,
-              this.startRotation.z
-            );
-          }
-        },
-
-        onTouchEnd: function () {
-          this.isDragging = false;
-          this.isScaling = false;
-          this.isRotating = false;
-          this.startTouches = [];
-        },
-
-        getDistance: function (touch1, touch2) {
-          const dx = touch1.clientX - touch2.clientX;
-          const dy = touch1.clientY - touch2.clientY;
-          return Math.sqrt(dx * dx + dy * dy);
-        },
-
-        getAngle: function (touch1, touch2) {
-          const dx = touch2.clientX - touch1.clientX;
-          const dy = touch2.clientY - touch1.clientY;
-          return Math.atan2(dy, dx) * (180 / Math.PI);
+          this.isRotating = true;
+          this.startTouches = [touches[0], touches[1], touches[2]];
+          this.startRotation = this.el.object3D.rotation.clone();
+          this.initialRotationY = this.startRotation.y;
         }
-      });
-    </script>
-  </head>
-  <style>
-      body, html {
-          margin: 0;
-          padding: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          background-color: rgb(0, 0, 0);
-          touch-action: manipulation;
+      },
+
+      onTouchMove: function (event) {
+        const touches = event.touches;
+
+        if (this.isDragging && touches.length === 1) {
+          const deltaX = (touches[0].clientX - this.startTouches[0].clientX) * 0.001;
+          const deltaY = (touches[0].clientY - this.startTouches[0].clientY) * 0.001;
+
+          const newX = Math.max(this.data.minX, Math.min(this.data.maxX, this.startPosition.x + deltaX));
+          const newY = Math.max(this.data.minY, Math.min(this.data.maxY, this.startPosition.y - deltaY));
+
+          this.el.object3D.position.set(newX, newY, this.startPosition.z);
+        } else if (this.isScaling && touches.length === 2) {
+          const currentDistance = this.getDistance(touches[0], touches[1]);
+          const startDistance = this.getDistance(this.startTouches[0], this.startTouches[1]);
+
+          const scaleMultiplier = currentDistance / startDistance;
+          const newScale = Math.max(
+            this.data.minScale,
+            Math.min(this.data.maxScale, this.startScale.x * scaleMultiplier)
+          );
+
+          this.el.object3D.scale.set(newScale, newScale, newScale);
+        } else if (this.isRotating && touches.length === 3) {
+          const deltaX = (touches[0].clientX + touches[1].clientX + touches[2].clientX) / 3 -
+                        (this.startTouches[0].clientX + this.startTouches[1].clientX + this.startTouches[2].clientX) / 3;
+
+          const rotationSpeed = 0.01;
+          const newRotationY = this.initialRotationY + deltaX * rotationSpeed;
+
+          this.el.object3D.rotation.set(
+            this.startRotation.x,
+            newRotationY,
+            this.startRotation.z
+          );
+        }
+      },
+
+      onTouchEnd: function () {
+        this.isDragging = false;
+        this.isScaling = false;
+        this.isRotating = false;
+        this.startTouches = [];
+      },
+
+      getDistance: function (touch1, touch2) {
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+      },
+
+      getAngle: function (touch1, touch2) {
+        const dx = touch2.clientX - touch1.clientX;
+        const dy = touch2.clientY - touch1.clientY;
+        return Math.atan2(dy, dx) * (180 / Math.PI);
       }
-      #sceneContainer {
-          position: relative;
-          width: 100%;
-          height: 100%;
-      }
-      #video {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          z-index: -1;
-      }
-      #captureButton {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000;
-        cursor: pointer;
-      }
-      #switchCameraButton {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        width: 50px;
-        height: 50px;
-        z-index: 1000;
-        cursor: pointer;
-      }
-      #popup {
-          z-index: 100;
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0,0,0,0.8);
-          justify-content: center;
-          align-items: center;
-      }
-      #capturedImage {
-          max-width: 90%;
-          max-height: 90%;
-      }
-      #closePopup {
-          position: absolute;
-          top: 20px;
-          right: 20px;
-          padding: 10px;
-      }
-      .a-canvas {
-          width: 100% !important;
-          height: 100% !important;
-          top: 0 !important;
-          left: 0 !important;
-          right: 0 !important;
-          bottom: 0 !important;
-      }
-      .popup1 {
+    });
+  </script>
+</head>
+<style>
+    body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: rgb(0, 0, 0);
+        touch-action: manipulation;
+    }
+    #sceneContainer {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+    #video {
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
+        object-fit: cover;
+        z-index: -1;
     }
-
-    .popup1.hidden {
-        display: none;
+    #captureButton {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      cursor: pointer;
     }
-
-    .popup1-content {
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      width: 300px;
-      position: relative;
-    }
-
-    .close1-btn {
-        position: absolute;
-        top: 0px;
-        right: 10px;
-        font-size: 40px;
-        cursor: pointer;
-        color: #000000;
-    }
-
-    .close1-btn:hover {
-        color: #070707;
-    }
-
-    .popup-button {
-      z-index: 999;
-      position: absolute; 
+    #switchCameraButton {
+      position: fixed;
       top: 10px;
-      left: 10px;
-      width: 10%;
-      height: auto;
-      cursor: pointer; 
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 50px;
+      z-index: 1000;
+      cursor: pointer;
+    }
+    #popup {
+        z-index: 100;
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        justify-content: center;
+        align-items: center;
+    }
+    #capturedImage {
+        max-width: 90%;
+        max-height: 90%;
+    }
+    #closePopup {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 10px;
+    }
+    .a-canvas {
+        width: 100% !important;
+        height: 100% !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+    }
+    .popup1 {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
   }
-  </style>
-  <div id="popup">
-      <img id="capturedImage" src="" alt="Captured Image">
-      <button id="closePopup">關閉</button>
+
+  .popup1.hidden {
+      display: none;
+  }
+
+  .popup1-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 300px;
+    position: relative;
+  }
+
+  .close1-btn {
+      position: absolute;
+      top: 0px;
+      right: 10px;
+      font-size: 40px;
+      cursor: pointer;
+      color: #000000;
+  }
+
+  .close1-btn:hover {
+      color: #070707;
+  }
+
+  .popup-button {
+    z-index: 999;
+    position: absolute; 
+    top: 10px;
+    left: 10px;
+    width: 10%;
+    height: auto;
+    cursor: pointer; 
+}
+</style>
+<div id="popup">
+    <img id="capturedImage" src="" alt="Captured Image">
+    <button id="closePopup">關閉</button>
+</div>
+<img id="openPopup" src="./imagesweb/q.png" alt="Open Popup" class="popup-button">
+<div id="popup1" class="popup1">
+  <div class="popup1-content">
+      <span id="closePopup1" class="close1-btn">&times;</span>
+      <h2>操作說明</h2>
+      <p>單指操作：移動動物的位置 <br>
+        雙指操作：縮放動物的大小<br>
+        三指操作：旋轉動物的角度</p>
   </div>
-  <img id="openPopup" src="./imagesweb/q.png" alt="Open Popup" class="popup-button">
-  <div id="popup1" class="popup1">
-    <div class="popup1-content">
-        <span id="closePopup1" class="close1-btn">&times;</span>
-        <h2>操作說明</h2>
-        <p>單指操作：移動動物的位置 <br>
-          雙指操作：縮放動物的大小<br>
-          三指操作：旋轉動物的角度</p>
-    </div>
+</div>
+</head>
+<body>
+  <div id="sceneContainer">
+      <video id="video" style="display: none"></video>
+      <a-scene vr-mode-ui="enabled: false">
+        <a-entity camera look-controls="enabled: false"  wasd-controls="enabled: false" position="0 1.6 0"  orbit-controls="target: #model;" orthographicSize="5" orthographic="true" ></a-entity>
+  <a-light color="white" position="5 5 5"></a-light>
+  <a-light type="ambient" color="#FFF"></a-light>
+        <a-entity id="model" position="0 1 -1">
+          <a-gltf-model src="models/result.glb" rotation="0 0 0" scale=".05 .05 .05" gesture-handler="target: #model" draggable-touch>
+          </a-gltf-model>
+        </a-entity>
+        <a-video src="#video" position="0 1.6 -9.5" width="9" height="16"></a-video>
+      </a-scene>
   </div>
-  </head>
-  <body>
-    <div id="sceneContainer">
-        <video id="video" style="display: none"></video>
-        <a-scene vr-mode-ui="enabled: false">
-          <a-entity camera look-controls="enabled: false"  wasd-controls="enabled: false" position="0 1.6 0"  orbit-controls="target: #model;" orthographicSize="5" orthographic="true" ></a-entity>
-	  <a-light color="white" position="5 5 5"></a-light>
-	  <a-light type="ambient" color="#FFF"></a-light>
-          <a-entity id="model" position="0 1 -1">
-            <a-gltf-model src="models/result.glb" rotation="0 0 0" scale=".05 .05 .05" gesture-handler="target: #model" draggable-touch>
-            </a-gltf-model>
-          </a-entity>
-          <a-video src="#video" position="0 1.6 -9.5" width="9" height="16"></a-video>
-        </a-scene>
-    </div>
-    <img id="captureButton" src="./imagesweb/question/result_take.webp" style="width: 40%;">拍照</button>
-    <img id="switchCameraButton" src="./imagesweb/switch_camera.png" style="width: 40%;">切換相機</button>
-  </body>
-  
-  <script>
-    const openPopup = document.getElementById("openPopup");
-    const popup1 = document.getElementById("popup1");
-    const closePopup1 = document.getElementById("closePopup1");
+  <img id="captureButton" src="./imagesweb/question/result_take.webp" style="width: 40%;">拍照</button>
+  <img id="switchCameraButton" src="./imagesweb/switch_camera.png" style="width: 40%;">切換相機</button>
+</body>
 
-    openPopup.addEventListener("click", () => {
-      popup1.style.display = 'flex';
-    });
+<script>
+  const openPopup = document.getElementById("openPopup");
+  const popup1 = document.getElementById("popup1");
+  const closePopup1 = document.getElementById("closePopup1");
 
-    closePopup1.addEventListener("click", () => {
-        popup1.style.display = 'none';
-    });
+  openPopup.addEventListener("click", () => {
+    popup1.style.display = 'flex';
+  });
 
-    const captureButton = document.getElementById('captureButton');
-    const switchCameraButton = document.getElementById('switchCameraButton');
-    const popup = document.getElementById('popup');
-    const capturedImage = document.getElementById('capturedImage');
-    const closePopup = document.getElementById('closePopup');
-    let currentFacingMode = "environment"; // 初始設置為後置攝像頭
+  closePopup1.addEventListener("click", () => {
+      popup1.style.display = 'none';
+  });
 
-    function switchCamera() {
-      currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
-      initCamera();
-    }
+  const captureButton = document.getElementById('captureButton');
+  const switchCameraButton = document.getElementById('switchCameraButton');
+  const popup = document.getElementById('popup');
+  const capturedImage = document.getElementById('capturedImage');
+  const closePopup = document.getElementById('closePopup');
+  let currentFacingMode = "environment"; // 初始設置為後置攝像頭
 
-    function initCamera() {
-      var constraints = {
-        video: {
-          facingMode: { exact: currentFacingMode },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          frameRate: { max: 30 }
-        }
-      };
+  function switchCamera() {
+    currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+    initCamera();
+  }
 
-      navigator.mediaDevices.getUserMedia(constraints)
-        .then(function (stream) {
-          var video = document.getElementById('video');
-          video.srcObject = stream;
-          video.play();
-
-          video.setAttribute('width', '100%');
-          video.setAttribute('height', '100%');
-        })
-        .catch(function (err) {
-          console.error('無法取得相機權限:', err);
-        });
-    }
-
-    window.onload = function () {
-      initCamera();
-
-      var canvas = document.createElement('canvas');
-      var ctx = canvas.getContext('2d');
-
-      function captureImage() {
-        var video = document.getElementById('video');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        var scene = document.querySelector('a-scene');
-        scene.renderer.render(scene.object3D, scene.camera);
-        ctx.drawImage(scene.canvas, 0, 0);
-
-        ctx.drawImage(video, 0, 0);
-
-        var image = new Image();
-        image.src = scene.renderer.domElement.toDataURL('image/webp')
-        capturedImage.src = image.src;
-        popup.style.display = 'flex';
-      };
-
-      closePopup.addEventListener('click', () => {
-        popup.style.display = 'none';
-      });
-
-      captureButton.addEventListener('click', captureImage);
-      switchCameraButton.addEventListener('click', switchCamera);
+  function initCamera() {
+    var constraints = {
+      video: {
+        facingMode: { exact: currentFacingMode },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        frameRate: { max: 30 }
+      }
     };
-  </script>
+
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then(function (stream) {
+        var video = document.getElementById('video');
+        video.srcObject = stream;
+        video.play();
+
+        video.setAttribute('width', '100%');
+        video.setAttribute('height', '100%');
+      })
+      .catch(function (err) {
+        console.error('無法取得相機權限:', err);
+      });
+  }
+
+  window.onload = function () {
+    initCamera();
+
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+
+    function captureImage() {
+      var video = document.getElementById('video');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      var scene = document.querySelector('a-scene');
+      scene.renderer.render(scene.object3D, scene.camera);
+      ctx.drawImage(scene.canvas, 0, 0);
+
+      ctx.drawImage(video, 0, 0);
+
+      var image = new Image();
+      image.src = scene.renderer.domElement.toDataURL('image/webp')
+      capturedImage.src = image.src;
+      popup.style.display = 'flex';
+    };
+
+    closePopup.addEventListener('click', () => {
+      popup.style.display = 'none';
+    });
+
+    captureButton.addEventListener('click', captureImage);
+    switchCameraButton.addEventListener('click', switchCamera);
+  };
+</script>
 </html>

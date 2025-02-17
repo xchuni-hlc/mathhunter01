@@ -34,7 +34,7 @@
       }
     }
       
-    </style>
+  </style>
 </head>
 
 <body>
@@ -62,12 +62,23 @@
 </body>
 <script>
     document.addEventListener("DOMContentLoaded", (event) => {
-let height = window.innerHeight;
+        let height = window.innerHeight;
         var home_page1 = document.getElementById("home_page1");
         home_page1.style.height = height + "px";
         var start_game = document.getElementById("start_game");
         start_game.addEventListener('click', () => {
-            window.location.href = "club1.html";
+            var iframe = document.createElement('iframe');
+            iframe.src = "https://mywebar.com/p/Project_1_sqsz9q9q4m";
+            iframe.frameBorder = "0";
+            iframe.scrolling = "yes";
+            iframe.seamless = "seamless";
+            iframe.style.display = "block";
+            iframe.style.width = "100%";
+            iframe.style.height = "100vh";
+            iframe.allow = "camera;gyroscope;accelerometer;magnetometer;xr-spatial-tracking;microphone";
+
+            document.body.innerHTML = ''; // 清除現有內容
+            document.body.appendChild(iframe); // 添加 iframe
         });
     });
 

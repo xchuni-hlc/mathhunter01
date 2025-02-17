@@ -154,10 +154,12 @@
       top: 10px;
       left: 50%;
       transform: translateX(-50%);
-      width: 50px;
-      height: 50px;
       z-index: 1000;
       cursor: pointer;
+      color: white;
+      font-size: 18px;
+      background: none;
+      border: none;
     }
     #popup {
         z-index: 100;
@@ -269,7 +271,7 @@
       </a-scene>
   </div>
   <img id="captureButton" src="./imagesweb/question/result_take.webp" style="width: 40%;">拍照</button>
-  <img id="switchCameraButton" src="./imagesweb/switch_camera.png" style="width: 40%;">切換相機</button>
+  <button id="switchCameraButton">切換相機</button>
 </body>
 
 <script>

@@ -14,28 +14,28 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.10/release/spritespin.min.js"></script>
   <style>
-  @media (orientation: landscape) {
-    #wrapper {
-      display: none;
+    @media (orientation: landscape) {
+      #wrapper {
+        display: none;
+      }
+      .landscape-warning {
+        display: block;
+        text-align: center;
+        font-size: 20px;
+        color: red;
+      }
     }
-    .landscape-warning {
-      display: block;
-      text-align: center;
-      font-size: 20px;
-      color: red;
+  
+    /* 當裝置為直向時，正常顯示內容 */
+    @media (orientation: portrait) {
+      #wrapper {
+        display: block;
+      }
+      .landscape-warning {
+        display: none;
+      }
     }
-  }
-
-  /* 當裝置為直向時，正常顯示內容 */
-  @media (orientation: portrait) {
-    #wrapper {
-      display: block;
-    }
-    .landscape-warning {
-      display: none;
-    }
-  }
-    
+      
   </style>
 </head>
 <body>
@@ -137,7 +137,18 @@ console.log(height);
             spin.style.display = "none";
         });
         clueAnswerInfo1.addEventListener('click', () => {
-            window.location.href = "club2.html";
+            var iframe = document.createElement('iframe');
+            iframe.src = "https://mywebar.com/p/Project_2_25b0drzbtu";
+            iframe.frameBorder = "0";
+            iframe.scrolling = "yes";
+            iframe.seamless = "seamless";
+            iframe.style.display = "block";
+            iframe.style.width = "100%";
+            iframe.style.height = "100vh";
+            iframe.allow = "camera;gyroscope;accelerometer;magnetometer;xr-spatial-tracking;microphone";
+
+            document.body.innerHTML = ''; // 清除現有內容
+            document.body.appendChild(iframe); // 添加 iframe
         });
     });
 

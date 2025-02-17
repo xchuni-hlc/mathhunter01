@@ -33,7 +33,7 @@
       }
     }
       
-    </style>
+  </style>
 </head>
 <body>
   <div class="landscape-warning">
@@ -93,7 +93,18 @@
             clueAnswer_1.style.display = "block";
         });
         clueAnswerInfo1.addEventListener('click', () => {
-            window.location.href = "club3.html";
+            var iframe = document.createElement('iframe');
+            iframe.src = "https://mywebar.com/p/Project_3_s84b4sg5im";
+            iframe.frameBorder = "0";
+            iframe.scrolling = "yes";
+            iframe.seamless = "seamless";
+            iframe.style.display = "block";
+            iframe.style.width = "100%";
+            iframe.style.height = "100vh";
+            iframe.allow = "camera;gyroscope;accelerometer;magnetometer;xr-spatial-tracking;microphone";
+
+            document.body.innerHTML = ''; // 清除現有內容
+            document.body.appendChild(iframe); // 添加 iframe
         });
     });
 

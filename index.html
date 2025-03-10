@@ -23,7 +23,7 @@
         color: red;
       }
     }
-  
+
     /* 當裝置為直向時，正常顯示內容 */
     @media (orientation: portrait) {
       #wrapper {
@@ -33,7 +33,7 @@
         display: none;
       }
     }
-    
+
     .close-music-btn {
       position: absolute;
       top: 10px;
@@ -43,6 +43,7 @@
       color: white;
       border: none;
       cursor: pointer;
+      z-index: 1000; /* 確保按鈕顯示在最前面 */
     }
   </style>
 </head>

@@ -34,6 +34,18 @@
       }
     }
 
+    .play-music-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 10px 20px;
+      background-color: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+      z-index: 1000; /* 確保按鈕顯示在最前面 */
+    }
+
     .close-music-btn {
       position: absolute;
       top: 10px;
@@ -49,10 +61,11 @@
 </head>
 
 <body>
-  <audio id="bg-audio" autoplay loop>
+  <audio id="bg-audio" loop>
     <source src="littlehunter.mp3" type="audio/mpeg">
     Your browser does not support the audio element.
   </audio>  
+  <button class="play-music-btn" onclick="document.getElementById('bg-audio').play()">播放音樂</button>
   <button class="close-music-btn" onclick="document.getElementById('bg-audio').pause()">關閉音樂</button>
   <div class="landscape-warning">
     <!-- 提示使用者旋轉裝置 -->

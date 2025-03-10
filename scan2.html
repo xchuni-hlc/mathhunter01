@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>WebAR - 圖像追蹤示範</title>
+  <title>WebAR - 數感獵人</title>
   
   <!-- 使用官方示例中最常見的搭配 -->
   <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
@@ -21,14 +21,14 @@
 </head>
 <body>
   <a-scene 
-    mindar-image="imageTargetSrc: ./GC1.mind; showStats: false;" 
+    mindar-image="imageTargetSrc: ./A2.mind; showStats: false;" 
     embedded 
     renderer="colorManagement: true;" 
     vr-mode-ui="enabled: false" 
     device-orientation-permission-ui="enabled: false"
   >
     <a-assets>
-      <a-asset-item id="clue-model" src="./clue1.glb"></a-asset-item>
+      <a-asset-item id="clue-model" src="./models/clue2.glb"></a-asset-item>
     </a-assets>
     
     <a-camera position="0 0 60" look-controls="enabled: false"></a-camera>

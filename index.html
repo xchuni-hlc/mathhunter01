@@ -33,48 +33,57 @@
         display: none;
       }
     }
-      
-    </style>
+    
+    .close-music-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 10px 20px;
+      background-color: red;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
- <button onclick="document.getElementById('bg-audio').play()">撥放音樂</button>
-<audio id="bg-audio" loop>
-  <source src="littlehunter.mp3" type="audio/mpeg">
-  Your browser does not support the audio element.
-</audio>
-   <div class="landscape-warning">
-        <!-- 提示使用者旋轉裝置 -->
-        <h1>請將手機旋轉為直向模式以獲得最佳瀏覽體驗。</h1>
-    </div>
+  <audio id="bg-audio" autoplay loop>
+    <source src="littlehunter.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>  
+  <button class="close-music-btn" onclick="document.getElementById('bg-audio').pause()">關閉音樂</button>
+  <div class="landscape-warning">
+    <!-- 提示使用者旋轉裝置 -->
+    <h1>請將手機旋轉為直向模式以獲得最佳瀏覽體驗。</h1>
+  </div>
   <div id="bgblack" style="display:none; position: absolute; width: 100vw; height: 100vh; z-index: 5000; background-color: black;">
-      <img src="./images/black.webp" style="width: 100%; height: 100%;">
+    <img src="./images/black.webp" style="width: 100%; height: 100%;">
   </div>
   <div id="wrapper">
-      <!-- 首頁 -->
-      <div id="home_page1" class="home_page1">
-          <div class="container" style="height: 100vh;">
-              <!-- <center><img id="home_page1_hunter" src="./images/home_hunter.png"></center> -->
-              <div class="cover">
-                  <center>
-                      <img id="home_page1_title" src="./imagesweb/home_title.webp">
-                  </center>
-              </div>
-              <img id="start_game" src="./images/start_game_btn.png">
-          </div>
+    <!-- 首頁 -->
+    <div id="home_page1" class="home_page1">
+      <div class="container" style="height: 100vh;">
+        <!-- <center><img id="home_page1_hunter" src="./images/home_hunter.png"></center> -->
+        <div class="cover">
+          <center>
+            <img id="home_page1_title" src="./imagesweb/home_title.webp">
+          </center>
+        </div>
+        <img id="start_game" src="./images/start_game_btn.png">
       </div>
+    </div>
   </div>
 </body>
 <script>
-    document.addEventListener("DOMContentLoaded", (event) => {
-let height = window.innerHeight;
-        var home_page1 = document.getElementById("home_page1");
-        home_page1.style.height = height + "px";
-        var start_game = document.getElementById("start_game");
-        start_game.addEventListener('click', () => {
-            window.location.href = "scan1.html";
-        });
+  document.addEventListener("DOMContentLoaded", (event) => {
+    let height = window.innerHeight;
+    var home_page1 = document.getElementById("home_page1");
+    home_page1.style.height = height + "px";
+    var start_game = document.getElementById("start_game");
+    start_game.addEventListener('click', () => {
+      window.location.href = "scan1.html";
     });
-
+  });
 </script>
 </html>

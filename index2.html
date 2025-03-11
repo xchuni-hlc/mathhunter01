@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <title>Hualien - 數感獵人</title>
+  <meta name="description" content="Hualien WebAR Experience">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <!-- A-Frame and MindAR -->
+  <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.0.0/dist/mindar-image.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.0.0/dist/mindar-image-aframe.prod.js"></script>
+  
+  <!-- Additional scripts -->
+  <script src="animation-mixer.js"></script>
+  <script src="ar-shadows.js"></script>
+  <script src="model-viewer.js"></script>
+  <script src="background-gradient.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.10/release/spritespin.min.js"></script>
+  
+  <link rel="stylesheet" type="text/css" href="./assets/main.css">
+  
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    /* 按鈕基本樣式 */
+    .play-music-btn, .close-music-btn {
+      position: fixed;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+      z-index: 9999;
+      display: block !important;
+    }
+
+    .play-music-btn {
+      top: 10px;
+      left: 10px;
+      background-color: green;
+      color: white;
+    }
+
+    .close-music-btn {
+      top: 10px;
+      right: 10px;
+      background-color: red;
+      color: white;
+    }
+    
+    /* 方向檢測 */
+    @media (orientation: landscape) {
+      .app-content {
+        display: none;
+      }
+      .landscape-warning {
+        display: block;
+        text-align: center;
+        font-size: 20px;
+        color: red;
+      }
+    }
+
+    @media (orientation: portrait) {
+      .app-content {
+        display: block;
+      }
+      .landscape-warning {
+        display: none;
+      }
+    }
+    
+    /* 頁面容器 */
+    .page {
+      width: 100%;
+      height: 100vh;
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: none;
+    }
+    
+    .page.active {
+      display: block;
+    }
+    
+    /* AR場景樣式 */
+    .ar-page {
+      width: 100%;
+      height: 100vh;
+    }
+    
+    /* 首頁樣式 */
+    .home_page1 {
+      background-color: #fff;
+    }
+    
+    /* 遊戲頁面樣式 */
+    .clue_page1 {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+    }
+    
+    /* 覆蓋層 */
+    .cover {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* 360度旋轉容器 */
+    #spin {
+      position: absolute;
+      z-index: 2000;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      margin-bottom: 40vw;
+    }
+  </style>
+</head>
+
+<body>
+  <audio id="bg-audio" loop>
+    <source src="littlehunter.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+  
+  <!-- 按鈕 -->
+  <button class="play-music-btn" onclick="document.getElementById('bg-audio').play()">播放音樂</button>
+  <button class="close-music-btn" onclick="document.getElementById('bg-audio').pause()">關閉音樂</button>
+  
+  <!-- 橫屏警告 -->
+  <div class="landscape-warning">
+    <h1>請將手機旋轉為直向模式以獲得最佳瀏覽體驗。</h1>
+  </div>
+  
+  <!-- 黑屏遮罩 -->
+  <div id="bgblack" style="display:none; position: absolute; width: 100vw; height: 100vh; z-index: 5000; background-color: black;">
+    <img src="./imagesweb/black.webp" style="width: 100%; height: 100%;">
+  </div>
+  
+  <!-- 主要內容 -->
+  <div class="app-content">
+    <!-- 首頁 -->
+    <div id="home_page" class="page active">
+      <div class="home_page1">
+        <div class="container" style="height: 100vh;">
+          <div class="cover">
+            <center>
+              <img id="home_page1_title" src="./imagesweb/home_title.webp">
+            </center>
+          </div>
+          <img id="start_game" src="./images/start_game_btn.png">
+        </div>
+      </div>
+    </div>
+    
+    <!-- AR掃描頁面1 -->
+    <div id="scan_page1" class="page">
+      <div class="ar-page">
+        <a-scene id="ar-scene1"
+          mindar-image="imageTargetSrc: ./A1.mind; showStats: false;" 
+          embedded 
+          renderer="colorManagement: true;" 
+          vr-mode-ui="enabled: false" 
+          device-orientation-permission-ui="enabled: false">
+          
+          <a-assets>
+            <a-asset-item id="clue-model1" src="./models/clue1.glb"></a-asset-item>
+          </a-assets>
+          
+          <a-camera position="0 0 60" look-controls="enabled: false"></a-camera>
+          
+          <a-entity mindar-image-target="targetIndex: 0">
+            <a-entity 
+              gltf-model="#clue-model1"
+              scale="0.1 0.1 0.1" 
+              position="0 0 0" 
+              rotation="90 0 0">
+            </a-entity>
+          </a-entity>
+        </a-scene>
+      </div>
+    </div>
+    
+    <!-- 線索頁面1 -->
+    <div id="clue_page1" class="page">
+      <div class="clue_page1">
+        <div id="clue1_1" class="btn" style="text-align: -webkit-center;">
+          <div style="width: 50%;text-align: center;">
+            <img src="./imagesweb/question/clue1.webp" style="width: 50%;">
+          </div>
+        </div>
+        
+        <div id="spin" style="position: absolute; z-index: 2000; bottom: 0; left: 50%; transform: translateX(-50%); margin-bottom: 40vw;">
+          <div id="spritespin"></div>
+        </div>
+        
+        <div id="clueQuestion_1" class="cover">
+          <img src="./imagesweb/question/question1_button_cover.webp" style="width: 100vw;">
+          <img id="clueAnswerButton1" src="./imagesweb/question/clue1_btn1.webp" style="width: 35%; margin: auto; position: absolute; bottom: 0; margin-bottom: 28vw; left: 50%; transform: translateX(-50%);">
+          <img id="clueAnswerButton2" src="./imagesweb/question/clue1_btn2.webp" style="width: 35%; margin: auto; position: absolute; bottom: 0; margin-bottom: 15vw; left: 50%; transform: translateX(-50%);">
+          <img src="./imagesweb/question/clue1process.webp" style="width: 15%; margin: auto; position: absolute; bottom: 0; margin-bottom: 3vw; left: 50%; transform: translateX(-50%);">
+        </div>
+        
+        <div id="clueAnswer_1" class="cover" style="display: none;">
+          <img id="clueAnswerRight" src="./imagesweb/question/clue1_ans_right.webp" style="width: 100vw;">
+          <img id="clueAnswerWrong" src="./imagesweb/question/clue1_ans_wrong.webp" style="width: 100vw;">
+          <img id="clueAnswerInfo1" src="./imagesweb/question/clue_next.webp" style="width: 35%; margin: auto; position: absolute; bottom: 0; margin-bottom: 15vw; left: 50%; transform: translateX(-50%);">
+          <img src="./imagesweb/question/clue1process.webp" style="width: 15%; margin: auto; position: absolute; bottom: 0; margin-bottom: 3vw; left: 50%; transform: translateX(-50%);">
+        </div>
+      </div>
+    </div>
+    
+    <!-- AR掃描頁面2 -->
+    <div id="scan_page2" class="page">
+      <div class="ar-page">
+        <a-scene id="ar-scene2"
+          mindar-image="imageTargetSrc: ./A2.mind; showStats: false;" 
+          embedded 
+          renderer="colorManagement: true;" 
+          vr-mode-ui="enabled: false" 
+          device-orientation-permission-ui="enabled: false">
+          
+          <a-assets>
+            <a-asset-item id="clue-model2" src="./models/clue2.glb"></a-asset-item>
+          </a-assets>
+          
+          <a-camera position="0 0 60" look-controls="enabled: false"></a-camera>
+          
+          <a-entity mindar-image-target="targetIndex: 0">
+            <a-entity 
+              gltf-model="#clue-model2"
+              scale="0.1 0.1 0.1" 
+              position="0 0 0" 
+              rotation="90 0 0">
+            </a-entity>
+          </a-entity>
+        </a-scene>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // 頁面控制器
+    const pageController = {
+      currentPage: 'home_page',
+      
+      // 顯示指定頁面，隱藏其他頁面
+      showPage: function(pageId) {
+        // 隱藏當前頁面
+        document.getElementById(this.currentPage).classList.remove('active');
+        
+        // 顯示新頁面
+        document.getElementById(pageId).classList.add('active');
+        
+        // 更新當前頁面
+        this.currentPage = pageId;
+        
+        // 特殊處理
+        if (pageId === 'clue_page1') {
+          this.initSpriteSpin();
+        }
+        
+        // 調整頁面高度
+        this.adjustPageHeight();
+        
+        console.log('切換到頁面:', pageId);
+      },
+      
+      // 調整頁面高度
+      adjustPageHeight: function() {
+        let height = window.innerHeight;
+        
+        if (this.currentPage === 'home_page') {
+          var homePage = document.querySelector('.home_page1');
+          if (homePage) homePage.style.height = height + "px";
+        }
+        
+        if (this.currentPage === 'clue_page1') {
+          var cluePage = document.querySelector('.clue_page1');
+          if (cluePage) cluePage.style.height = height + "px";
+        }
+      },
+      
+      // 初始化360度旋轉
+      initSpriteSpin: function() {
+        const images = [];
+        for (let i = 0; i < 37; i++) {
+          images.push('./imagesweb/360-1/' + (100 + i) + '.webp');
+        }
+        
+        const container = document.getElementById('spritespin');
+        const containerWidth = window.innerWidth * 0.7;
+        const containerHeight = containerWidth * (3/5);
+        
+        $('#spritespin').spritespin({
+          source: images,
+          width: containerWidth,
+          height: containerHeight,
+          frameTime: 60,
+          sense: -1,
+          frames: images.length,
+          animate: true,
+          loop: true
+        });
+      },
+      
+      // 摧毀360度旋轉
+      destroySpriteSpin: function() {
+        if ($('#spritespin').spritespin) {
+          $('#spritespin').spritespin('destroy');
+        }
+      }
+    };
+    
+    // 初始化
+    document.addEventListener("DOMContentLoaded", function() {
+      // 調整頁面高度
+      pageController.adjustPageHeight();
+      
+      // 監聽屏幕方向變化
+      window.addEventListener("orientationchange", function() {
+        setTimeout(function() {
+          pageController.adjustPageHeight();
+          
+          // 確保按鈕顯示
+          var playBtn = document.querySelector('.play-music-btn');
+          var closeBtn = document.querySelector('.close-music-btn');
+          
+          playBtn.style.display = 'block';
+          closeBtn.style.display = 'block';
+        }, 300);
+      });
+      
+      // 監聽窗口大小變化
+      window.addEventListener("resize", function() {
+        pageController.adjustPageHeight();
+        
+        // 如果當前是線索頁面，重新初始化360度旋轉
+        if (pageController.currentPage === 'clue_page1') {
+          pageController.destroySpriteSpin();
+          pageController.initSpriteSpin();
+        }
+      });
+      
+      // 首頁 - 開始遊戲按鈕
+      document.getElementById('start_game').addEventListener('click', function() {
+        pageController.showPage('scan_page1');
+      });
+      
+      // AR掃描頁面1 - 點擊跳轉
+      document.querySelector('#scan_page1 .ar-page').addEventListener('click', function() {
+        pageController.showPage('clue_page1');
+      });
+      
+      // 線索頁面1 - 答案按鈕1
+      document.getElementById('clueAnswerButton1').addEventListener('click', function() {
+        document.getElementById('clueAnswerRight').style.display = "none";
+        document.getElementById('clueAnswerWrong').style.display = "block";
+        document.getElementById('clueQuestion_1').style.display = "none";
+        document.getElementById('clueAnswer_1').style.display = "block";
+        document.getElementById('spin').style.display = "none";
+      });
+      
+      // 線索頁面1 - 答案按鈕2
+      document.getElementById('clueAnswerButton2').addEventListener('click', function() {
+        document.getElementById('clueAnswerRight').style.display = "block";
+        document.getElementById('clueAnswerWrong').style.display = "none";
+        document.getElementById('clueQuestion_1').style.display = "none";
+        document.getElementById('clueAnswer_1').style.display = "block";
+        document.getElementById('spin').style.display = "none";
+      });
+      
+      // 線索頁面1 - 下一步按鈕
+      document.getElementById('clueAnswerInfo1').addEventListener('click', function() {
+        pageController.showPage('scan_page2');
+      });
+      
+      // AR掃描頁面2 - 點擊事件
+      document.querySelector('#scan_page2 .ar-page').addEventListener('click', function() {
+        // 如果需要跳轉到club2.html，可以取消下面的註釋，或者添加到下一個頁面
+        // window.location.href = 'club2.html';
+        console.log('進入club2頁面');
+      });
+      
+      // 設置AR頁面的事件監聽
+      setupAREvents();
+    });
+    
+    // 設置AR事件
+    function setupAREvents() {
+      // 監聽AR目標找到和丟失事件 - AR頁面1
+      const entity1 = document.querySelector('#ar-scene1 [mindar-image-target]');
+      if (entity1) {
+        entity1.addEventListener('targetFound', function() {
+          console.log('AR1目標找到');
+        });
+        
+        entity1.addEventListener('targetLost', function() {
+          console.log('AR1目標丟失');
+        });
+      }
+      
+      // 監聽AR目標找到和丟失事件 - AR頁面2
+      const entity2 = document.querySelector('#ar-scene2 [mindar-image-target]');
+      if (entity2) {
+        entity2.addEventListener('targetFound', function() {
+          console.log('AR2目標找到');
+        });
+        
+        entity2.addEventListener('targetLost', function() {
+          console.log('AR2目標丟失');
+        });
+      }
+    }
+  </script>
+</body>
+</html>

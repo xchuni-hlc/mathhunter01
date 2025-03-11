@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <title>Hualien - Math Hunter</title>
+  <meta name="description" content="Hualien Math Hunter">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" type="text/css" href="./assets/main.css">
+  
+  <!-- A-Frame and MindAR Libraries -->
+  <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.0.0/dist/mindar-image.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.0.0/dist/mindar-image-aframe.prod.js"></script>
+  
+  <!-- Additional Libraries -->
+  <script src="animation-mixer.js"></script>
+  <script src="ar-shadows.js"></script>
+  <script src="model-viewer.js"></script>
+  <script src="background-gradient.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.10/release/spritespin.min.js"></script>
+  
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    /* Orientation control */
+    @media (orientation: landscape) {
+      #wrapper {
+        display: none;
+      }
+      .landscape-warning {
+        display: block;
+        text-align: center;
+        font-size: 20px;
+        color: red;
+      }
+      #ar-section {
+        display: none;
+      }
+    }
+
+    @media (orientation: portrait) {
+      #wrapper {
+        display: block;
+      }
+      .landscape-warning {
+        display: none;
+      }
+    }
+    
+    /* AR Section */
+    #ar-section {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+    }
+    
+    /* Club Page Section */
+    #club-section {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1001;
+    }
+    
+    /* Loading animation */
+    .loader {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      animation: spin 2s linear infinite;
+      z-index: 2000;
+    }
+    
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    
+    /* Skip Button */
+    #skip-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 15px;
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      z-index: 1500;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="landscape-warning">
+    <h1>請將手機旋轉為直向模式以獲得最佳瀏覽體驗。</h1>
+  </div>
+  
+  <div id="bgblack" style="display:none; position: absolute; width: 100vw; height: 100vh; z-index: 5000; background-color: black;">
+    <img src="./imagesweb/black.webp" style="width: 100%; height: 100%;">
+  </div>
+  
+  <!-- AR Section -->
+  <div id="ar-section">
+    <a-scene 
+      mindar-image="imageTargetSrc: ./A1.mind; showStats: false;" 
+      embedded 
+      renderer="colorManagement: true;" 
+      vr-mode-ui="enabled: false" 
+      device-orientation-permission-ui="enabled: false"
+    >
+      <a-assets>
+        <a-asset-item id="clue-model" src="./models/clue1.glb"></a-asset-item>
+      </a-assets>
+      
+      <a-camera position="0 0 60" look-controls="enabled: false"></a-camera>
+      
+      <a-entity mindar-image-target="targetIndex: 0">
+        <a-entity 
+          id="ar-model" 
+          gltf-model="#clue-model"
+          scale="0.1 0.1 0.1" 
+          position="0 0 0" 
+          rotation="90 0 0"></a-entity>
+      </a-entity>
+    </a-scene>
+    
+    <button id="skip-button">跳過掃描</button>
+    <div id="loading" class="loader"></div>
+  </div>
+  
+  <!-- Club Section -->
+  <div id="club-section">
+    <div id="wrapper">
+      <!-- 線索頁 -->
+      <div id="clue_page1" class="clue_page1">
+        <div id="clue1_1" class="btn" style="text-align: -webkit-center;">
+          <div style="width: 50%;text-align: center;">
+            <img src="./imagesweb/question/clue1.webp" style="width: 50%;">
+          </div>
+        </div>
+        <div id="spin" style="position: absolute; z-index: 2000;bottom: 0;left: 50%;transform: translateX(-50%); margin-bottom: 40vw;">
+          <div id="spritespin"></div>
+        </div>
+        <div id="clueQuestion_1" class="cover">
+          <img src="./imagesweb/question/question1_button_cover.webp" style="width: 100vw;">
+          <img id="clueAnswerButton1" src="./imagesweb/question/clue1_btn1.webp" style="width: 35%;margin: auto;position: absolute;bottom: 0; margin-bottom: 28vw;left: 50%;transform: translateX(-50%);">
+          <img id="clueAnswerButton2" src="./imagesweb/question/clue1_btn2.webp" style="width: 35%;margin: auto;position: absolute;bottom: 0; margin-bottom: 15vw;left: 50%;transform: translateX(-50%);">
+          <img src="./imagesweb/question/clue1process.webp" style="width:15%;margin: auto;position: absolute;bottom: 0; margin-bottom: 3vw;left: 50%;transform: translateX(-50%);">
+        </div>
+        
+        <div id="clueAnswer_1" class="cover" style="display: none;">
+          <img id="clueAnswerRight" src="./imagesweb/question/clue1_ans_right.webp" style="width: 100vw;">
+          <img id="clueAnswerWrong" src="./imagesweb/question/clue1_ans_wrong.webp" style="width: 100vw;">
+          <img id="clueAnswerInfo1" src="./imagesweb/question/clue_next.webp" style="width: 35%;margin: auto;position: absolute;bottom: 0; margin-bottom: 15vw;left: 50%;transform: translateX(-50%);">
+          <img src="./imagesweb/question/clue1process.webp" style="width:15%;margin: auto;position: absolute;bottom: 0; margin-bottom: 3vw;left: 50%;transform: translateX(-50%);">
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script>
+  document.addEventListener("DOMContentLoaded", (event) => {
+    // 設置高度
+    let height = window.innerHeight;
+    var clue_page1 = document.getElementById("clue_page1");
+    clue_page1.style.height = height + "px";
+    
+    // 螢幕方向變化監聽
+    window.addEventListener("orientationchange", function() {
+      if (window.orientation === 90 || window.orientation === -90) {
+        // 橫向模式提示
+      }
+    });
+    
+    // AR 目標掃描處理
+    const sceneEl = document.querySelector('a-scene');
+    const entity = document.querySelector('[mindar-image-target]');
+    const loading = document.getElementById('loading');
+    
+    if (entity) {
+      entity.addEventListener('targetFound', function() {
+        console.log('目標找到');
+        // 短暫顯示 AR 內容後轉換到線索頁
+        setTimeout(function() {
+          document.getElementById('ar-section').style.display = 'none';
+          document.getElementById('club-section').style.display = 'block';
+          initSpriteSpin(); // 初始化 360 度旋轉
+        }, 2000);
+      });
+      
+      entity.addEventListener('targetLost', function() {
+        console.log('目標丟失');
+      });
+    }
+    
+    // "跳過掃描"按鈕
+    document.getElementById('skip-button').addEventListener('click', function() {
+      document.getElementById('ar-section').style.display = 'none';
+      document.getElementById('club-section').style.display = 'block';
+      initSpriteSpin(); // 初始化 360 度旋轉
+    });
+    
+    // 360 度旋轉圖初始化
+    function initSpriteSpin() {
+      const images = [];
+      for (let i = 0; i < 37; i++) {
+        images.push('./imagesweb/360-1/'+(100 + i)+'.webp');
+      }
+      
+      const container = document.getElementById('spritespin');
+      const containerWidth = window.innerWidth * 0.7;
+      const containerHeight = containerWidth * (3/5);
+      
+      $('#spritespin').spritespin({
+        source: images,
+        width: containerWidth,
+        height: containerHeight,
+        frameTime: 60,
+        sense: -1,
+        frames: images.length,
+        animate: true,
+        loop: true
+      });
+    }
+    
+    // 當螢幕大小改變時重新調整 SpriteSpin
+    window.addEventListener("resize", function () {
+      if ($('#spritespin').spritespin) {
+        $('#spritespin').spritespin('destroy'); // 銷毀舊的實例
+        initSpriteSpin(); // 創建新的實例
+      }
+    });
+    
+    // 線索頁面按鈕事件
+    var spin = document.getElementById("spin");
+    var clue1 = document.getElementById("clue1_1");
+    var clueQuestion_1 = document.getElementById("clueQuestion_1");
+    var clueAnswer_1 = document.getElementById("clueAnswer_1");
+    var clueAnswerRight = document.getElementById("clueAnswerRight");
+    var clueAnswerWrong = document.getElementById("clueAnswerWrong");
+    var clueAnswerButton1 = document.getElementById("clueAnswerButton1");
+    var clueAnswerButton2 = document.getElementById("clueAnswerButton2");
+    var clueAnswerInfo1 = document.getElementById("clueAnswerInfo1");
+    
+    clueAnswerButton1.addEventListener('click', () => {
+      clueAnswerRight.style.display = "none";
+      clueAnswerWrong.style.display = "block";
+      clueQuestion_1.style.display = "none";
+      clueAnswer_1.style.display = "block";
+      spin.style.display = "none";
+    });
+    
+    clueAnswerButton2.addEventListener('click', () => {
+      clueAnswerRight.style.display = "block";
+      clueAnswerWrong.style.display = "none";
+      clueQuestion_1.style.display = "none";
+      clueAnswer_1.style.display = "block";
+      spin.style.display = "none";
+    });
+    
+    clueAnswerInfo1.addEventListener('click', () => {
+      window.location.href = "scan2.html";
+    });
+    
+    // 初始狀態下隱藏 loading
+    setTimeout(() => {
+      loading.style.display = 'none';
+    }, 3000);
+  });
+</script>
+</html>

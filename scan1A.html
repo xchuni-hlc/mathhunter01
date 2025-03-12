@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WebAR - 數感獵人</title>
+  
+  <!-- 使用官方示例中最常見的搭配 -->
+  <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.0.0/dist/mindar-image.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.0.0/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+  
+  <!-- 添加手勢控制腳本 -->
+  <script>
+    AFRAME.registerComponent('draggable-touch', {
+      schema: {
+        minScale: { type: 'number', default: 0.05 },
+        maxScale: { type: 'number', default: 0.15 },
+        minX: { type: 'number', default: -0.3 },
+        maxX: { type: 'number', default: 0.3 },
+        minY: { type: 'number', default: -0.3 },
+        maxY: { type: 'number', default: 0.3 }
+      },
+      init: function () {
+        const el = this.el;
+
+        this.isDragging = false;
+        this.isScaling = false;
+        this.isRotating = false;
+        this.startTouches = [];
+        this.startPosition = null;
+        this.startScale = null;
+        this.startRotation = null;
+        this.initialRotationY = 0;
+
+        el.sceneEl.addEventListener('touchstart', this.onTouchStart.bind(this));
+        el.sceneEl.addEventListener('touchmove', this.onTouchMove.bind(this));
+        el.sceneEl.addEventListener('touchend', this.onTouchEnd.bind(this));
+      },
+
+      onTouchStart: function (event) {
+        const touches = event.touches;
+
+        if (touches.length === 1) {
+          this.isDragging = true;
+          this.startTouches = [touches[0]];
+          this.startPosition = this.el.object3D.position.clone();
+        } else if (touches.length === 2) {
+          this.isDragging = false;
+          this.isScaling = true;
+          this.startTouches = [touches[0], touches[1]];
+          this.startScale = this.el.object3D.scale.clone();
+          this.startRotation = this.el.object3D.rotation.clone();
+        } else if (touches.length === 3) {
+          this.isDragging = false;
+          this.isScaling = false;
+          this.isRotating = true;
+          this.startTouches = [touches[0], touches[1], touches[2]];
+          this.startRotation = this.el.object3D.rotation.clone();
+          this.initialRotationY = this.startRotation.y;
+        }
+      },
+
+      onTouchMove: function (event) {
+        const touches = event.touches;
+
+        if (this.isDragging && touches.length === 1) {
+          const deltaX = (touches[0].clientX - this.startTouches[0].clientX) * 0.001;
+          const deltaY = (touches[0].clientY - this.startTouches[0].clientY) * 0.001;
+
+          const newX = Math.max(this.data.minX, Math.min(this.data.maxX, this.startPosition.x + deltaX));
+          const newY = Math.max(this.data.minY, Math.min(this.data.maxY, this.startPosition.y - deltaY));
+
+          this.el.object3D.position.set(newX, newY, this.startPosition.z);
+        } else if (this.isScaling && touches.length === 2) {
+          const currentDistance = this.getDistance(touches[0], touches[1]);
+          const startDistance = this.getDistance(this.startTouches[0], this.startTouches[1]);
+
+          const scaleMultiplier = currentDistance / startDistance;
+          const currentScale = this.startScale.x;
+          const newScale = Math.max(
+            this.data.minScale,
+            Math.min(this.data.maxScale, currentScale * scaleMultiplier)
+          );
+
+          this.el.object3D.scale.set(newScale, newScale, newScale);
+        } else if (this.isRotating && touches.length === 3) {
+          const deltaX = (touches[0].clientX + touches[1].clientX + touches[2].clientX) / 3 -
+                        (this.startTouches[0].clientX + this.startTouches[1].clientX + this.startTouches[2].clientX) / 3;
+
+          const rotationSpeed = 0.01;
+          const newRotationY = this.initialRotationY + deltaX * rotationSpeed;
+
+          this.el.object3D.rotation.set(
+            this.startRotation.x,
+            newRotationY,
+            this.startRotation.z
+          );
+        }
+      },
+
+      onTouchEnd: function () {
+        this.isDragging = false;
+        this.isScaling = false;
+        this.isRotating = false;
+        this.startTouches = [];
+      },
+
+      getDistance: function (touch1, touch2) {
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+      },
+
+      getAngle: function (touch1, touch2) {
+        const dx = touch2.clientX - touch1.clientX;
+        const dy = touch2.clientY - touch1.clientY;
+        return Math.atan2(dy, dx) * (180 / Math.PI);
+      }
+    });
+  </script>
+  
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+    .popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .popup-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 300px;
+      position: relative;
+    }
+    .close-btn {
+      position: absolute;
+      top: 0px;
+      right: 10px;
+      font-size: 40px;
+      cursor: pointer;
+      color: #000000;
+    }
+    .popup-button {
+      z-index: 999;
+      position: absolute; 
+      top: 10px;
+      left: 10px;
+      width: 10%;
+      height: auto;
+      cursor: pointer; 
+    }
+  </style>
+</head>
+<body>
+  <!-- 加入操作提示按鈕和彈窗 -->
+  <img id="openPopup" src="./imagesweb/q.png" alt="Open Popup" class="popup-button">
+  <div id="popup" class="popup">
+    <div class="popup-content">
+      <span id="closePopup" class="close-btn">&times;</span>
+      <h2>操作說明</h2>
+      <p>單指操作：移動模型的位置 <br>
+        雙指操作：縮放模型的大小<br>
+        三指操作：旋轉模型的角度<br>
+      </p>
+    </div>
+  </div>
+
+  <a-scene 
+    mindar-image="imageTargetSrc: ./A1.mind; showStats: false;" 
+    embedded 
+    renderer="colorManagement: true;" 
+    vr-mode-ui="enabled: false" 
+    device-orientation-permission-ui="enabled: false"
+  >
+    <a-assets>
+      <a-asset-item id="clue-model" src="./models/clue1.glb"></a-asset-item>
+    </a-assets>
+    
+    <a-camera position="0 0 60" look-controls="enabled: false"></a-camera>
+    
+    <a-entity mindar-image-target="targetIndex: 0">
+      <a-entity 
+        id="ar-model" 
+        gltf-model="#clue-model"
+        scale="0.1 0.1 0.1" 
+        position="0 0 0" 
+        rotation="90 0 0"
+        draggable-touch
+      ></a-entity>
+    </a-entity>
+  </a-scene>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('頁面加載完成');
+      
+      // 監聽目標找到和丟失事件
+      const sceneEl = document.querySelector('a-scene');
+      const entity = document.querySelector('[mindar-image-target]');
+      
+      if (entity) {
+        entity.addEventListener('targetFound', function() {
+          console.log('目標找到');
+        });
+        
+        entity.addEventListener('targetLost', function() {
+          console.log('目標丟失');
+        });
+      }
+      
+      // 點擊事件處理
+      const openPopup = document.getElementById("openPopup");
+      const popup = document.getElementById("popup");
+      const closePopup = document.getElementById("closePopup");
+      
+      // 操作提示彈窗
+      if (openPopup && popup && closePopup) {
+        openPopup.addEventListener("click", function(e) {
+          e.stopPropagation(); // 防止事件冒泡
+          popup.style.display = 'flex';
+        });
+        
+        closePopup.addEventListener("click", function() {
+          popup.style.display = 'none';
+        });
+      }
+      
+      // 保留原有的點擊跳轉功能
+      document.addEventListener('click', function(e) {
+        // 避免點擊彈窗時也跳轉
+        if (e.target !== openPopup && !popup.contains(e.target)) {
+          window.location.href = 'https://xchuni-hlc.github.io/mathhunter01/club1.html';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
